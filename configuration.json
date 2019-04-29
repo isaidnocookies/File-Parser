@@ -1,0 +1,10 @@
+{
+	"supported_file_types": [
+		"txt",
+		"json"
+	],
+	"ignored_file_types": {
+		"DS_Store"
+	}
+
+}
