@@ -2,6 +2,7 @@ import argparse
 import json
 import sys
 import os
+import webbrowser
 
 def saveTreeToFile(dir, outputFile):
 	output = open(outputFile, "w")
@@ -17,7 +18,10 @@ def saveTreeToFile(dir, outputFile):
 		for f in files:
 			# print('{}{}'.format(subindent, f))
 			fullFilePath = (os.path.join(path, f))
-			output.write('<p>{}<a href="file:///{}">{}</a></p>'.format(subindent, fullFilePath, f))
+			try:
+				output.write('<p>{}<a href="file:///{}">{}</a></p>'.format(subindent, fullFilePath, f))
+			except:
+				print("Error outputing: " + str(fullFilePath))
 			# <a href="file:///C:\Videos\lecture.mp4">Link 2</a>
 			output.write("\n")
 
@@ -34,10 +38,8 @@ def getFileTypes(dir):
 					fileType = ""
 
 					if "." in name:
-						fullFileSplit = fullFile.split(".")
-						fileType = str(fullFileSplit[-1])
-						if (fullFileSplit.index(".") < fullFileSplit.index("/")):
-							print ("Hidden File")
+						fileSplit = fullFile.split(".")
+						fileType = str(fileSplit[-1])
 					else:
 						fileType = "None"
 
@@ -52,8 +54,12 @@ def getFileTypes(dir):
 	except:
 		return {}
 
-def saveFilesByType(dir):
+def outputFilesByType(dir, outputFile):
 	fileTypes = dict()
+
+	output = open(outputFile, "w")
+	output.write("<!doctype html>\n<body>\n")
+
 	try:
 		for path, subdirs, files in os.walk(dir):
 			for name in files:
@@ -61,13 +67,16 @@ def saveFilesByType(dir):
 					fullFile = (os.path.join(path, name))
 					fileType = ""
 
-					if (name.index(".") >= 0):
-						nameSplit = name.split(".")
-						fileType = nameSplit[-1]
-					else:
+					try:
+						if (name.index(".") >= 0):
+							nameSplit = name.split(".")
+							fileType = nameSplit[-1]
+						else:
+							fileType = "None"
+					except:
 						fileType = "None"
 
-					if (fileType in fileTypes.keys()):
+					if fileType in fileTypes.keys():
 						fileTypes[fileType].append(name)
 					else:
 						fileTypes[fileType] = []
@@ -75,11 +84,26 @@ def saveFilesByType(dir):
 				except:
 					print ("Unexpected error:", sys.exc_info())
 					continue
-
-		print (fileTypes)
-		return (fileTypes)
+		# return (fileTypes)
 	except:
-		return {}
+		print ("Experienced Error while outputing files by type")
+		# return {}
+
+	for theFileType in fileTypes.keys():
+		output.write('<h1><strong>.{}</strong></h1>'.format(theFileType))
+		output.write("\n")
+		output.write("<p>")
+		files = fileTypes[theFileType]
+		for file in files:
+			try:
+				output.write(str(file))
+			except:
+				print ("Error writing output: " + str(file))
+			output.write("<br>")
+		output.write("<p>")
+
+	output.write("</body></html>\n")
+	output.close()
 
 def getCommandLineArguements():
 	parser = argparse.ArgumentParser(description='Parse files within directory')
@@ -108,7 +132,10 @@ def main():
 	args = getCommandLineArguements()
 	directoryToParse = args.directory
 	saveTreeToFile(directoryToParse, "treeOutput.html")
-	# saveFilesByType(directoryToParse)
+	outputFilesByType(directoryToParse, "filesByType.html")
+
+	cwd = os.getcwd()
+	webbrowser.open("file:///" + str(cwd) + "/treeOutput.html",new=2)
 
 if __name__ == "__main__":
 	main()
