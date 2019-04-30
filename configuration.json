@@ -3,8 +3,9 @@
 		"txt",
 		"json"
 	],
-	"ignored_file_types": {
-		"DS_Store"
-	}
+	"ignored_file_types": [
+		"DS_Store",
+		".git"
+	]
 
 }
